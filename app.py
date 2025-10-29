@@ -285,6 +285,8 @@ if st.button("Analisar"):
     resposta = analisar_mensagem(texto)
     st.markdown(resposta, unsafe_allow_html=True)
 
+st.markdown("<br><br>", unsafe_allow_html=True)
+
 with st.expander("ℹ️ Sobre este projeto"):
     st.write("""
     Este aplicativo utiliza inteligência artificial para detectar possíveis **golpes e fraudes** em mensagens.
