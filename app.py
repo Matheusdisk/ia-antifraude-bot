@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # ---------- CONFIGURAÇÕES ----------
-st.set_page_config(page_title="IA Antifraude Bot", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="IA Antifraude Bot", page_icon="🤖")
 
 st.title("🤖 IA Antifraude Bot")
 st.write("Analise mensagens e veja se parecem **golpes, enganos ou mensagens seguras** usando inteligência artificial.")
