@@ -7,8 +7,6 @@ from bs4 import BeautifulSoup
 # ---------- CONFIGURAÇÕES ----------
 
 st.markdown("<h1 style='text-align:center;'>🤖 IA Antifraude Bot</h1>", unsafe_allow_html=True)
-st.caption("Feito com 💡 e IA — Projeto de segurança cibernética com Python.")
-
 
 st.sidebar.title("👩‍💻 Matheus Henrique")
 st.sidebar.markdown("💼 [LinkedIn](https://www.linkedin.com/in/matheus4807/)")
