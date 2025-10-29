@@ -15,23 +15,6 @@ st.sidebar.markdown("---")
 st.sidebar.info("🚀 Projeto desenvolvido para análise de mensagens suspeitas de fraude usando IA.")
 
 st.title("🤖 IA Antifraude Bot")
-
-with st.expander("ℹ️ Sobre este projeto"):
-    st.write("""
-    Este aplicativo utiliza inteligência artificial para detectar possíveis **golpes e fraudes** em mensagens.
-    
-    🔍 **Como funciona:**  
-    O texto é analisado por um modelo BERT treinado em português, que classifica o tom da mensagem e detecta padrões suspeitos (links, promessas de dinheiro, palavras-chave de golpe etc.)
-
-    🧠 **Tecnologias usadas:**  
-    - Streamlit (frontend e hospedagem)  
-    - Transformers (modelo BERTweet)  
-    - BeautifulSoup + Requests (pré-visualização de links)  
-
-    💡 Desenvolvido por **Matheus Henrique** como parte do portfólio de projetos em IA aplicada à segurança digital.
-    """)
-
-
 st.write("Analise mensagens e veja se parecem **golpes, enganos ou mensagens seguras** usando inteligência artificial.")
 
 # ---------- CARREGAR MODELO ----------
@@ -139,6 +122,21 @@ texto = st.text_area("Cole aqui a mensagem recebida:", placeholder="Ex: Oi, cliq
 if st.button("Analisar"):
     resposta = analisar_mensagem(texto)
     st.markdown(resposta, unsafe_allow_html=True)
+
+with st.expander("ℹ️ Sobre este projeto"):
+    st.write("""
+    Este aplicativo utiliza inteligência artificial para detectar possíveis **golpes e fraudes** em mensagens.
+    
+    🔍 **Como funciona:**  
+    O texto é analisado por um modelo BERT treinado em português, que classifica o tom da mensagem e detecta padrões suspeitos (links, promessas de dinheiro, palavras-chave de golpe etc.)
+
+    🧠 **Tecnologias usadas:**  
+    - Streamlit (frontend e hospedagem)  
+    - Transformers (modelo BERTweet)  
+    - BeautifulSoup + Requests (pré-visualização de links)  
+
+    💡 Desenvolvido por **Matheus Henrique** como parte do portfólio de projetos em IA aplicada à segurança digital.
+    """)
 
 st.markdown("---")
 st.caption("Feito com 💡 e IA — Projeto de segurança cibernética com Python.")
