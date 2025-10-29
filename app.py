@@ -3,29 +3,28 @@ from transformers import pipeline
 import re
 import requests
 from bs4 import BeautifulSoup
+import base64, pathlib
 
 # ======= CABEÇALHO ALINHADO LADO A LADO =======
-st.markdown("""
+def img_b64(path):
+    return base64.b64encode(pathlib.Path(path).read_bytes()).decode()
+
+icon_b64 = img_b64("17604803.png")  # ajuste o caminho se estiver em outra pasta
+
+st.markdown(f"""
 <div style="
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 10px;
-    margin-bottom: 6px;
+    display:flex; align-items:center; justify-content:center; gap:16px;
+    margin-top:10px; margin-bottom:6px;
 ">
-    <img src="17604803.png" width="70" style="margin-top:-4px;">
+    <img src="data:image/png;base64,{icon_b64}" width="70" style="margin-top:-4px;">
     <h1 style="color:white; font-size:38px; font-weight:800; margin:0;">
         IA Antifraude Bot
     </h1>
 </div>
-
 <p style='text-align:center; color:#9aa4b2; font-size:16px; margin-top:-4px;'>
 Analise mensagens e identifique possíveis golpes com inteligência artificial.
 </p>
 """, unsafe_allow_html=True)
-
-
 
 
 # ---------- ESTILO VISUAL ----------
