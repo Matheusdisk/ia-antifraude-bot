@@ -298,6 +298,9 @@ if st.button("Analisar"):
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
+
+
+st.markdown("---")
 with st.expander("ℹ️ Sobre este projeto"):
     st.write("""
     Este aplicativo utiliza inteligência artificial para detectar possíveis **golpes e fraudes** em mensagens.
@@ -312,6 +315,4 @@ with st.expander("ℹ️ Sobre este projeto"):
 
     💡 Desenvolvido por **Matheus Henrique** como parte do portfólio de projetos em IA aplicada à segurança digital.
     """)
-
-st.markdown("---")
 st.caption("Feito com IA — Projeto de segurança cibernética com Python.")
