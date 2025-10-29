@@ -102,6 +102,8 @@ def get_link_preview(url):
     except Exception:
         return {"title": "Link inacessível ou perigoso", "img": None, "url": url}
 
+
+
 # ---------- FUNÇÃO DE ANÁLISE ----------
 def analisar_mensagem(texto):
     if not texto.strip():
@@ -109,51 +111,90 @@ def analisar_mensagem(texto):
 
     texto_lower = texto.lower()
     resultado = detector(texto)[0]
-    score = resultado["score"]
-    alerta, risco = [], 0
+    score_modelo = resultado["score"]
+
+    alerta = []
+    risco = 0
     links = re.findall(r"https?://\S+", texto)
 
+    # --- Heurísticas de golpe/suspeita ---
     palavras_suspeitas = ["pix","ganhou","retirada","clique","confirme","prêmio","transferido","saldo"]
     if any(p in texto_lower for p in palavras_suspeitas):
-        alerta.append("🚨 Termos muito usados em **golpes** detectados."); risco += 2
+        alerta.append("🚨 Termos muito usados em **golpes** detectados.")
+        risco += 2
 
     if links:
-        alerta.append("🔗 Mensagem contém **link suspeito**."); risco += 3
+        alerta.append("🔗 Mensagem contém **link**.")
+        risco += 1  # risco base por ter link
         if any(e in texto_lower for e in ["bit.ly","tinyurl","cut.ly","is.gd"]):
-            alerta.append("⚠️ O link é **encurtado**, comum em tentativas de **phishing**."); risco += 3
+            alerta.append("⚠️ Link **encurtado** (típico em **phishing**).")
+            risco += 3
 
     if any(p in texto_lower for p in ["cassino","aposta","bet","jogo"]):
-        alerta.append("🎰 Menciona **cassino ou apostas online**, muito usados em **fraudes**."); risco += 3
+        alerta.append("🎰 Menciona **cassino/apostas online** (frequente em fraudes).")
+        risco += 3
 
     if any(p in texto_lower for p in ["r$","ganhe","receba","transferido","saldo","verificado"]):
-        alerta.append("💸 Promete **dinheiro fácil ou transferência**, típico de **golpe de premiação falsa**."); risco += 2
+        alerta.append("💸 Promessa de **dinheiro/transferência** (prêmio falso).")
+        risco += 2
 
-    if risco >= 4: gravidade, cor = "🚨 **ALERTA MÁXIMO: ALTA PROBABILIDADE DE GOLPE!**", "red"
-    elif risco >= 2: gravidade, cor = "⚠️ **Mensagem suspeita. Tenha cuidado.**", "orange"
-    else: gravidade, cor = "✅ **Parece segura**", "green"
+    # --- Detector de Marketing/Promoção ---
+    score_mkt, motivos_mkt = detectar_marketing(texto_lower)
 
-    header_html = f"<div class='alert-header' style='background:{cor};'>{gravidade}</div>"
+    # Decisão de categoria
+    # Se há fortes sinais de phishing/golpe (risco>=4), é golpe/suspeita.
+    # Se score_mkt >=3 e risco <4 (sem phishing forte), classifica como Marketing.
+    if risco >= 4:
+        categoria = "golpe"
+        gravidade = "🚨 **ALERTA MÁXIMO: ALTA PROBABILIDADE DE GOLPE!**"
+        header_color = "#e03131"
+        risk_color = "#e03131"
+    elif risco >= 2:
+        categoria = "suspeita"
+        gravidade = "⚠️ **Mensagem suspeita. Tenha cuidado.**"
+        header_color = "#f59f00"
+        risk_color = "#f59f00"
+    elif score_mkt >= 3:
+        categoria = "marketing"
+        gravidade = "🛍️ **Promoção/Marketing**"
+        header_color = "#2b6ef3"   # azul
+        risk_color = "#2b6ef3"
+        # Acrescenta motivos de marketing como “alertas informativos”
+        alerta.extend(motivos_mkt)
+    else:
+        categoria = "segura"
+        gravidade = "✅ **Parece segura**"
+        header_color = "#2f9e44"
+        risk_color = "#2f9e44"
+
+    # Cabeçalho
+    header_html = f"<div class='alert-header' style='background:{header_color};'>{gravidade}</div>"
+
+    # Barra de risco: mostra “risco de golpe”, independente da categoria
     fill = min(risco/10, 1.0)
-    fill_color = {"red":"#e03131","orange":"#f08c00","green":"#2f9e44"}[cor]
     risk_html = f"""
     <div class='risk-box'>
-      <div class='risk-label'><span>Nível de risco</span><span>{risco}/10</span></div>
-      <div class='risk-bar'><div style='width:{fill*100:.0f}%; background:{fill_color};'></div></div>
+      <div class='risk-label'><span>Nível de risco de golpe</span><span>{risco}/10</span></div>
+      <div class='risk-bar'><div style='width:{fill*100:.0f}%; background:{risk_color};'></div></div>
     </div>"""
 
+    # Lista de alertas
     itens = ""
     for a in alerta:
         em = a.strip().split(" ")[0]
-        resto = a[len(em):].strip() if em and len(em)<=3 else a
-        emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em)<=3 else "<div class='alert-emoji'>•</div>"
+        resto = a[len(em):].strip() if em and len(em) <= 3 else a
+        emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
         texto_html = f"<div class='alert-text'>{resto}</div>"
         itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
-    lista_html = f"<ul class='alerts'>{itens}</ul>" if itens else \
-        f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade: <b>{score:.2f}</b></div></div>"
+    lista_html = (
+        f"<ul class='alerts'>{itens}</ul>"
+        if itens
+        else f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade do modelo: <b>{score_modelo:.2f}</b></div></div>"
+    )
 
     html_final = header_html + risk_html + lista_html
 
-    # Preview de links
+    # Preview de links (se houver)
     for link in links:
         preview = get_link_preview(link)
         st.markdown("---")
@@ -172,7 +213,18 @@ def analisar_mensagem(texto):
         if preview["img"]:
             st.image(preview["img"], caption="Prévia do site", use_column_width=True)
 
+        # Dica de “boas práticas” se a categoria for marketing (às vezes é legítimo)
+        if categoria == "marketing":
+            st.info("ℹ️ Parece **promoção**. Ainda assim, prefira acessar a loja digitando o site oficial no navegador; evite links encurtados.")
     return html_final
+
+
+
+
+
+
+
+
 
 # ---------- INTERFACE ----------
 texto = st.text_area("Cole aqui a mensagem recebida:",
