@@ -8,6 +8,28 @@ from bs4 import BeautifulSoup
 
 st.markdown("<h1 style='text-align:center;'>🤖 IA Antifraude Bot</h1>", unsafe_allow_html=True)
 
+# ---------- ESTILO VISUAL ----------
+st.markdown("""
+<style>
+.alert-header{
+  padding:12px 14px;border-radius:10px;color:#fff;font-weight:700;
+  text-align:center;margin:4px 0 12px 0; font-size:18px
+}
+.alerts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.alert-item{background:#111418;border:1px solid #2a2f36;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.alert-emoji{font-size:18px;line-height:1.1}
+.alert-text{font-size:15px}
+.pill{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:700;font-size:12px;color:#fff;margin-bottom:6px}
+.pill.red{background:#e03131}
+.pill.orange{background:#f08c00}
+.pill.green{background:#2f9e44}
+.risk-box{background:#0f1320;border:1px solid #2a2f36;border-radius:10px;padding:10px;margin-bottom:8px}
+.risk-label{display:flex;justify-content:space-between;font-size:12px;color:#9aa4b2;margin-bottom:6px}
+.risk-bar{height:8px;background:#1e2430;border-radius:999px;overflow:hidden}
+.risk-bar>div{height:100%}
+</style>
+""", unsafe_allow_html=True)
+
 st.sidebar.title("👩‍💻 Matheus Henrique")
 st.sidebar.markdown("💼 [LinkedIn](https://www.linkedin.com/in/matheus4807/)")
 st.sidebar.markdown("🐙 [GitHub](https://github.com/Matheusdisk)")
@@ -129,8 +151,31 @@ def analisar_mensagem(texto):
                         "🚷 **NÃO PROSSIGA — ESTE LINK PODE ROUBAR SEUS DADOS OU INDUZIR AO ERRO!**</div>",
                         unsafe_allow_html=True)
 
-    return resultado_final
+        # ---------- CLASSIFICAÇÃO ----------
+    if risco >= 4:
+        gravidade = "🚨 **ALERTA MÁXIMO: ALTA PROBABILIDADE DE GOLPE!**"
+        cor = "red"
+    elif risco >= 2:
+        gravidade = "⚠️ **Mensagem suspeita. Tenha cuidado.**"
+        cor = "orange"
+    else:
+        gravidade = "✅ **Parece segura**"
+        cor = "green"
 
+    # ---------- ESTRUTURA E RENDERIZAÇÃO BONITA ----------
+    retorno = {
+        "gravidade": gravidade,
+        "cor": cor,
+        "score": score,
+        "risco": risco,
+        "alertas": alerta,
+        "links": links
+    }
+
+    # (aqui entra todo o bloco HTML que te mandei)
+    # ...
+    # ...
+    return html_final
 
 # ---------- INTERFACE ----------
 texto = st.text_area("Cole aqui a mensagem recebida:", placeholder="Ex: Oi, clique aqui para atualizar seus dados bancários.")
