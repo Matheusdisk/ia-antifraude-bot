@@ -253,17 +253,19 @@ def analisar_mensagem(texto):
     chip = f"<span class='pill {'red' if cor=='red' else 'orange' if cor=='orange' else 'green'}'>{gravidade.split(':')[0].replace('**','')}</span>"
 
     # Lista de alertas
-    itens = ""
-    for a in retorno["alertas"]:
-        em = a.strip().split(" ")[0]
-        resto = a[len(em):].strip() if em and len(em) <= 3 else a
-        emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
-        texto_html = f"<div class='alert-text'>{resto}</div>"
-        itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
+    # Lista de alertas
+itens = ""
+for a in retorno["alertas"]:
+    em = a.strip().split(" ")[0]
+    resto = a[len(em):].strip() if em and len(em) <= 3 else a
+    emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
+    texto_html = f"<div class='alert-text'>{resto}</div>"
+    itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
 
-    lista_html = f"<ul class='alerts'>{itens}</ul>" if itens else f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade do modelo: <b>{score:.2f}</b></div></div>"
+lista_html = f"<ul class='alerts'>{itens}</ul>" if itens else f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade do modelo: <b>{score:.2f}</b></div></div>"
 
-    html_final = chip + header_html + risk_html + lista_html
+html_final = header_html + risk_html + lista_html
+
 
     # ---------- EXIBIR PRÉVIA DE LINK (render na tela) ----------
     if links:
