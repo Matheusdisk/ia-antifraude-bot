@@ -253,21 +253,24 @@ def analisar_mensagem(texto):
     chip = f"<span class='pill {'red' if cor=='red' else 'orange' if cor=='orange' else 'green'}'>{gravidade.split(':')[0].replace('**','')}</span>"
 
     # Lista de alertas
-    # Lista de alertas
-itens = ""
-for a in retorno["alertas"]:
-    em = a.strip().split(" ")[0]
-    resto = a[len(em):].strip() if em and len(em) <= 3 else a
-    emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
-    texto_html = f"<div class='alert-text'>{resto}</div>"
-    itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
+    itens = ""
+    for a in retorno["alertas"]:
+        em = a.strip().split(" ")[0]
+        resto = a[len(em):].strip() if em and len(em) <= 3 else a
+        emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
+        texto_html = f"<div class='alert-text'>{resto}</div>"
+        itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
 
-lista_html = f"<ul class='alerts'>{itens}</ul>" if itens else f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade do modelo: <b>{score:.2f}</b></div></div>"
+    lista_html = (
+        f"<ul class='alerts'>{itens}</ul>"
+        if itens
+        else f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade do modelo: <b>{score:.2f}</b></div></div>"
+    )
 
-html_final = header_html + risk_html + lista_html
+    # 👉 removido o chip — agora mostramos apenas cabeçalho + barra de risco + lista
+    html_final = header_html + risk_html + lista_html
 
-
-    # ---------- EXIBIR PRÉVIA DE LINK (render na tela) ----------
+    # ---------- EXIBIR PRÉVIA DE LINK ----------
     if links:
         for link in links:
             preview = get_link_preview(link)
@@ -280,8 +283,8 @@ html_final = header_html + risk_html + lista_html
                 f"<b>Título detectado:</b> {preview['title']}<br></div>",
                 unsafe_allow_html=True
             )
-            if preview['img']:
-                st.image(preview['img'], caption="Prévia do site", use_column_width=True)
+            if preview["img"]:
+                st.image(preview["img"], caption="Prévia do site", use_column_width=True)
             st.markdown(
                 "<div style='color:white;background:#b30000;padding:8px;border-radius:5px;text-align:center;'>"
                 "🚷 <b>NÃO PROSSIGA — ESTE LINK PODE ROUBAR SEUS DADOS OU INDUZIR AO ERRO!</b></div>",
@@ -289,6 +292,7 @@ html_final = header_html + risk_html + lista_html
             )
 
     return html_final
+
 
 # ---------- INTERFACE ----------
 texto = st.text_area("Cole aqui a mensagem recebida:", placeholder="Ex: Oi, clique aqui para atualizar seus dados bancários.")
