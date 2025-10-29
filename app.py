@@ -134,7 +134,7 @@ st.sidebar.markdown("✉️ matheuscruzhenrique@hotmail.com")
 st.sidebar.markdown("---")
 st.sidebar.info("🚀 Projeto desenvolvido para análise de mensagens suspeitas de fraude usando IA.")
 
-st.write("Analise mensagens e veja se parecem **golpes, enganos ou mensagens seguras** usando inteligência artificial.")
+st.write("")
 
 # ---------- CARREGAR MODELO ----------
 @st.cache_resource
