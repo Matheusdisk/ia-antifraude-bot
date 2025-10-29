@@ -19,17 +19,17 @@ Analise mensagens e identifique possíveis golpes com inteligência artificial.
 # ---------- ESTILO VISUAL ----------
 st.markdown("""
 <style>
-/* ====== ESTILIZAÇÃO GERAL ====== */
+/* ====== LAYOUT GERAL ====== */
 .alert-header{
-  padding:16px 18px;
+  padding:18px 20px;
   border-radius:10px;
   color:#fff;
   font-weight:800;
   text-align:center;
-  margin:16px 0 18px 0;
+  margin:28px 0 24px 0;
   font-size:20px;
   letter-spacing:0.4px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.3);
+  box-shadow:0 3px 6px rgba(0,0,0,0.25);
 }
 
 .alerts{
@@ -38,45 +38,45 @@ st.markdown("""
   padding:0;
   display:flex;
   flex-direction:column;
-  gap:12px;
+  gap:16px; /* espaço entre os cards de alerta */
 }
 
 .alert-item{
   background:#151922;
   border:1px solid #2b3038;
-  border-radius:10px;
-  padding:14px 16px;
+  border-radius:12px;
+  padding:16px 18px;
   display:flex;
-  gap:12px;
+  gap:14px;
   align-items:flex-start;
-  transition:all 0.2s ease-in-out;
+  transition:all 0.25s ease-in-out;
 }
 .alert-item:hover{
-  background:#1b202a;
+  background:#1c212c;
   border-color:#3b414b;
 }
 
 .alert-emoji{
-  font-size:20px;
+  font-size:22px;
   line-height:1.1;
   flex-shrink:0;
 }
 
 .alert-text{
   font-size:16px;
-  line-height:1.4;
+  line-height:1.5;
   color:#e1e5eb;
 }
 
 /* ====== PÍLULAS (STATUS) ====== */
 .pill{
   display:inline-block;
-  padding:6px 14px;
+  padding:8px 18px;
   border-radius:999px;
   font-weight:700;
   font-size:13px;
   color:#fff;
-  margin-bottom:8px;
+  margin:10px 0 18px 0;
   text-transform:uppercase;
   letter-spacing:0.5px;
 }
@@ -88,23 +88,23 @@ st.markdown("""
 .risk-box{
   background:#10131a;
   border:1px solid #2b3038;
-  border-radius:10px;
-  padding:14px 16px;
-  margin:10px 0 18px 0;
-  box-shadow:inset 0 0 6px rgba(0,0,0,0.4);
+  border-radius:12px;
+  padding:16px 18px;
+  margin:20px 0 28px 0;
+  box-shadow:inset 0 0 8px rgba(0,0,0,0.4);
 }
 .risk-label{
   display:flex;
   justify-content:space-between;
   font-size:13px;
   color:#b2b8c3;
-  margin-bottom:8px;
+  margin-bottom:10px;
   font-weight:600;
   text-transform:uppercase;
   letter-spacing:0.3px;
 }
 .risk-bar{
-  height:10px;
+  height:12px;
   background:#1e2430;
   border-radius:999px;
   overflow:hidden;
@@ -116,11 +116,11 @@ st.markdown("""
 
 /* ====== SEÇÃO DE LINK ====== */
 .stMarkdown h3{
-  margin-top:26px;
+  margin-top:36px;
 }
 
 div[data-testid="stMarkdownContainer"] hr{
-  margin:26px 0 16px 0;
+  margin:34px 0 26px 0;
   border-color:#333a44;
 }
 </style>
