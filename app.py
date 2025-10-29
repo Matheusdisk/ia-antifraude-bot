@@ -6,7 +6,15 @@ from bs4 import BeautifulSoup
 
 # ---------- CONFIGURAÇÕES ----------
 
-st.markdown("<h1 style='text-align:center;'>🤖 IA Antifraude Bot</h1>", unsafe_allow_html=True)
+st.markdown("""
+<h1 style='text-align:center; color:#f8f9fa; margin-top:10px; margin-bottom:0px;'>
+🤖 IA Antifraude Bot
+</h1>
+<p style='text-align:center; color:#9aa4b2; font-size:16px; margin-bottom:30px;'>
+Analise mensagens e identifique possíveis golpes com inteligência artificial.
+</p>
+""", unsafe_allow_html=True)
+
 
 # ---------- ESTILO VISUAL ----------
 st.markdown("""
