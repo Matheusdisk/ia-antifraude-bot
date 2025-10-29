@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 st.markdown("<h1 style='text-align:center;'>🤖 IA Antifraude Bot</h1>", unsafe_allow_html=True)
 st.caption("Feito com 💡 e IA — Projeto de segurança cibernética com Python.")
 
-st.set_page_config(page_title="IA Antifraude Bot", page_icon="🤖")
 
 st.sidebar.title("👩‍💻 Matheus Henrique")
 st.sidebar.markdown("💼 [LinkedIn](https://www.linkedin.com/in/matheus4807/)")
@@ -18,7 +17,6 @@ st.sidebar.markdown("✉️ matheuscruzhenrique@hotmail.com")
 st.sidebar.markdown("---")
 st.sidebar.info("🚀 Projeto desenvolvido para análise de mensagens suspeitas de fraude usando IA.")
 
-st.title("🤖 IA Antifraude Bot")
 
 with st.expander("ℹ️ Sobre este projeto"):
     st.write("""
