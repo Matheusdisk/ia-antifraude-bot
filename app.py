@@ -7,6 +7,13 @@ from bs4 import BeautifulSoup
 # ---------- CONFIGURAÇÕES ----------
 st.set_page_config(page_title="IA Antifraude Bot", page_icon="🤖")
 
+st.sidebar.title("👩‍💻 Matheus Henrique")
+st.sidebar.markdown("💼 [LinkedIn](https://www.linkedin.com/in/matheus4807/)")
+st.sidebar.markdown("🐙 [GitHub](https://github.com/Matheusdisk)")
+st.sidebar.markdown("✉️ matheuscruzhenrique@hotmail.com")
+st.sidebar.markdown("---")
+st.sidebar.info("🚀 Projeto desenvolvido para análise de mensagens suspeitas de fraude usando IA.")
+
 st.title("🤖 IA Antifraude Bot")
 st.write("Analise mensagens e veja se parecem **golpes, enganos ou mensagens seguras** usando inteligência artificial.")
 
