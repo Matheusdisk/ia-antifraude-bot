@@ -4,16 +4,19 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-# ---------- CONFIGURAÇÕES ----------
-
+# ======= CABEÇALHO BONITO =======
+col1, col2, col3 = st.columns([1,3,1])
+with col2:
+    st.image("17604803.png", width=120)  # caminho do ícone
 st.markdown("""
-<h1 style='text-align:center; color:#f8f9fa; margin-top:10px; margin-bottom:0px;'>
-🤖 IA Antifraude Bot
+<h1 style='text-align:center; margin-top:-10px;'>
+IA Antifraude Bot
 </h1>
-<p style='text-align:center; color:#9aa4b2; font-size:16px; margin-bottom:30px;'>
+<p style='text-align:center; color:#9aa4b2; font-size:16px; margin-bottom:20px;'>
 Analise mensagens e identifique possíveis golpes com inteligência artificial.
 </p>
 """, unsafe_allow_html=True)
+
 
 
 # ---------- ESTILO VISUAL ----------
