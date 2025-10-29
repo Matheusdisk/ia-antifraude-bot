@@ -302,4 +302,4 @@ if st.button("Analisar"):
     st.markdown(resposta, unsafe_allow_html=True)
 
 st.markdown("---")
-st.caption("Feito com 💡 e IA — Projeto de segurança cibernética com Python.")
+st.caption("Feito com IA — Projeto de segurança cibernética com Python.")
