@@ -102,6 +102,52 @@ def get_link_preview(url):
     except Exception:
         return {"title": "Link inacessível ou perigoso", "img": None, "url": url}
 
+# --- Detectores de marketing/promoção ---
+def _pct_or_money(text):
+    # % de desconto ou preço em R$
+    return (
+        re.search(r"\b\d{1,3}\s?%\b", text) is not None or
+        re.search(r"\bR\$\s?\d{1,3}([.,]\d{2})?\b", text) is not None
+    )
+
+def detectar_marketing(texto_lower: str):
+    """
+    Retorna (score_marketing:int, motivos:list[str]).
+    Quanto maior o score, mais “cara” de anúncio legítimo.
+    """
+    motivos, score = [], 0
+
+    gatilhos = [
+        "cupom","código","desconto","frete grátis","promo","promoção","oferta",
+        "aproveite","imperdível","lançamento","leve","ganhe","corre",
+        "só hoje","somente hoje","últimas unidades","estoque limitado",
+        "válido até","apenas","por tempo limitado","garanta","aproveite agora"
+    ]
+    if any(g in texto_lower for g in gatilhos):
+        motivos.append("🛍️ Linguagem comercial/promocional detectada.")
+        score += 2
+
+    if _pct_or_money(texto_lower):
+        motivos.append("💸 Menções a % de desconto ou preço em R$.")
+        score += 2
+
+    # Limite por CPF é comum em ofertas
+    if re.search(r"\bcpf\b", texto_lower):
+        motivos.append("🧾 Menção a CPF (limite por CPF é típico de oferta).")
+        score += 1
+
+    # Urgência (muitas maiúsculas)
+    palavras_caps = re.findall(r"\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ]{4,}\b", texto_lower, flags=re.I)
+    if len(palavras_caps) >= 2:
+        motivos.append("⏰ Urgência/ênfase (MUITAS MAIÚSCULAS).")
+        score += 1
+
+    # Várias exclamações
+    if "!!" in texto_lower or texto_lower.count("!") >= 2:
+        motivos.append("‼️ Ênfase com várias exclamações.")
+        score += 1
+
+    return score, motivos
 
 
 # ---------- FUNÇÃO DE ANÁLISE ----------
