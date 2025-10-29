@@ -338,10 +338,22 @@ def analisar_mensagem(texto):
             if preview["img"]:
                 st.image(preview["img"], caption="Prévia do site", use_column_width=True)
             st.markdown(
-                "<div style='color:white;background:#b30000;padding:8px;border-radius:5px;text-align:center;'>"
-                "🚷 <b>NÃO PROSSIGA — ESTE LINK PODE ROUBAR SEUS DADOS OU INDUZIR AO ERRO!</b></div>",
-                unsafe_allow_html=True
-            )
+    f"""
+    <div style="
+        background:#ef5350;
+        padding:18px;
+        border-radius:14px;
+        color:white;
+        box-shadow:0 4px 10px rgba(0,0,0,.25);
+        line-height:1.45;
+    ">
+      <b>🚫 ESTE LINK PODE SER PERIGOSO</b><br><br>
+      <b>Endereço:</b> {preview['url']}<br>
+      <b>Título detectado:</b> {preview['title']}
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
     return html_final
 
