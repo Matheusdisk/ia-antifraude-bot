@@ -4,6 +4,11 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import base64, pathlib
+import unicodedata
+from html import unescape
+from urllib.parse import urlparse
+import ipaddress, socket
+
 
 # ======= CABEÇALHO ALINHADO LADO A LADO =======
 def img_b64(path):
@@ -156,19 +161,71 @@ def carregar_modelo():
 detector = carregar_modelo()
 
 # ---------- FUNÇÃO PARA PEGAR META-DADOS DO LINK ----------
+import unicodedata
+from html import unescape
+from urllib.parse import urlparse
+import ipaddress, socket
+
+def _is_private_ip(host):
+    try:
+        ip = ipaddress.ip_address(socket.gethostbyname(host))
+        return ip.is_private or ip.is_loopback or ip.is_link_local
+    except:
+        return True
+
+def _clean_text(s: str) -> str:
+    if not s:
+        return "Sem título"
+    s = unescape(s)
+    s = unicodedata.normalize("NFKC", s)
+    s = "".join(ch for ch in s if ch.isprintable())
+    s = " ".join(s.split())                    # colapsa espaços
+    return s[:160]                             # limita tamanho
+
 def get_link_preview(url):
     try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError("Protocolo não permitido.")
+        if _is_private_ip(parsed.hostname):
+            raise ValueError("Host não permitido.")
+
         headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers, timeout=5)
-        soup = BeautifulSoup(response.text, "html.parser")
+        # baixa só até 500KB para não travar
+        r = requests.get(url, headers=headers, timeout=6, allow_redirects=True, stream=True)
+        r.raise_for_status()
+        raw = r.raw.read(500_000, decode_content=True)
 
-        title = soup.title.string if soup.title else "Sem título"
-        img_tag = soup.find("meta", property="og:image")
-        img = img_tag["content"] if img_tag and "content" in img_tag.attrs else None
+        # detecta encoding (requests tenta charset-normalizer)
+        encoding = r.encoding or "utf-8"
+        try:
+            html = raw.decode(encoding, errors="ignore")
+        except:
+            html = raw.decode("utf-8", errors="ignore")
 
-        return {"title": title, "img": img, "url": url}
-    except:
+        soup = BeautifulSoup(html, "html.parser")
+
+        # título: og:title > meta name=title > <title>
+        title = None
+        ogt = soup.find("meta", property="og:title")
+        if ogt and ogt.get("content"):
+            title = ogt["content"]
+        if not title:
+            mt = soup.find("meta", attrs={"name": "title"})
+            if mt and mt.get("content"):
+                title = mt["content"]
+        if not title:
+            title = soup.title.string if soup.title and soup.title.string else "Sem título"
+
+        img = None
+        ogimg = soup.find("meta", property="og:image")
+        if ogimg and ogimg.get("content"):
+            img = ogimg["content"]
+
+        return {"title": _clean_text(title), "img": img, "url": r.url}
+    except Exception:
         return {"title": "Link inacessível ou perigoso", "img": None, "url": url}
+
 
 
 # ---------- FUNÇÃO DE ANÁLISE ----------
