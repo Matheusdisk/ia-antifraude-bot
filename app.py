@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # ======= CABEÇALHO BONITO =======
 col1, col2, col3 = st.columns([1,3,1])
 with col2:
-    st.image("17604803.png", width=120)  # caminho do ícone
+    st.image("17604803.png", width=80)  # caminho do ícone
 st.markdown("""
 <h1 style='text-align:center; margin-top:-10px;'>
 IA Antifraude Bot
