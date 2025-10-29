@@ -117,41 +117,7 @@ def analisar_mensagem(texto):
         alerta.append("💸 Promete **dinheiro fácil ou transferência**, típico de **golpe de premiação falsa**.")
         risco += 2
 
-    # ---------- CLASSIFICAÇÃO ----------
-    if risco >= 4:
-        gravidade = "🚨 **ALERTA MÁXIMO: ALTA PROBABILIDADE DE GOLPE!**"
-        cor = "red"
-    elif risco >= 2:
-        gravidade = "⚠️ **Mensagem suspeita. Tenha cuidado.**"
-        cor = "orange"
-    else:
-        gravidade = "✅ **Parece segura**"
-        cor = "green"
-
-    # ---------- SAÍDA ----------
-    resultado_final = f"<div style='background-color:{cor};padding:10px;border-radius:8px;color:white;font-size:18px;font-weight:bold;text-align:center;'>{gravidade}</div><br>"
-    resultado_final += "<br>".join(alerta) if alerta else f"Confiabilidade: {score:.2f}"
-
-    # ---------- EXIBIR PRÉVIA DE LINK ----------
-    if links:
-        for link in links:
-            preview = get_link_preview(link)
-
-            st.markdown("---")
-            st.markdown("### ⚠️ **NÃO CLIQUE NESSE LINK!**")
-            st.markdown(f"<div style='background-color:#ff4d4d;padding:15px;border-radius:10px;color:white;'>"
-                        f"<b>🚫 ESTE LINK PODE SER PERIGOSO</b><br><br>"
-                        f"<b>Endereço:</b> {preview['url']}<br>"
-                        f"<b>Título detectado:</b> {preview['title']}<br>", unsafe_allow_html=True)
-
-            if preview['img']:
-                st.image(preview['img'], caption="Prévia do site", use_column_width=True)
-
-            st.markdown("<div style='color:white;background:#b30000;padding:8px;border-radius:5px;text-align:center;'>"
-                        "🚷 **NÃO PROSSIGA — ESTE LINK PODE ROUBAR SEUS DADOS OU INDUZIR AO ERRO!**</div>",
-                        unsafe_allow_html=True)
-
-        # ---------- CLASSIFICAÇÃO ----------
+    # ---------- CLASSIFICAÇÃO (UMA VEZ SÓ) ----------
     if risco >= 4:
         gravidade = "🚨 **ALERTA MÁXIMO: ALTA PROBABILIDADE DE GOLPE!**"
         cor = "red"
@@ -172,9 +138,57 @@ def analisar_mensagem(texto):
         "links": links
     }
 
-    # (aqui entra todo o bloco HTML que te mandei)
-    # ...
-    # ...
+    # Cabeçalho
+    header_html = f"<div class='alert-header' style='background:{cor};'>{retorno['gravidade']}</div>"
+
+    # Barra de risco
+    risco_max = 10
+    fill = min(retorno["risco"]/risco_max, 1.0)
+    fill_color = {"red":"#e03131", "orange":"#f08c00", "green":"#2f9e44"}[cor]
+    risk_html = f"""
+    <div class='risk-box'>
+      <div class='risk-label'><span>Nível de risco</span><span>{retorno['risco']}/{risco_max}</span></div>
+      <div class='risk-bar'><div style='width:{fill*100:.0f}%; background:{fill_color};'></div></div>
+    </div>
+    """
+
+    # Chip
+    chip = f"<span class='pill {'red' if cor=='red' else 'orange' if cor=='orange' else 'green'}'>{gravidade.split(':')[0].replace('**','')}</span>"
+
+    # Lista de alertas
+    itens = ""
+    for a in retorno["alertas"]:
+        em = a.strip().split(" ")[0]
+        resto = a[len(em):].strip() if em and len(em) <= 3 else a
+        emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
+        texto_html = f"<div class='alert-text'>{resto}</div>"
+        itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
+
+    lista_html = f"<ul class='alerts'>{itens}</ul>" if itens else f"<div class='alert-item'><div class='alert-emoji'>✅</div><div class='alert-text'>Confiabilidade do modelo: <b>{score:.2f}</b></div></div>"
+
+    html_final = chip + header_html + risk_html + lista_html
+
+    # ---------- EXIBIR PRÉVIA DE LINK (render na tela) ----------
+    if links:
+        for link in links:
+            preview = get_link_preview(link)
+            st.markdown("---")
+            st.markdown("### ⚠️ **NÃO CLIQUE NESSE LINK!**")
+            st.markdown(
+                f"<div style='background-color:#ff4d4d;padding:15px;border-radius:10px;color:white;'>"
+                f"<b>🚫 ESTE LINK PODE SER PERIGOSO</b><br><br>"
+                f"<b>Endereço:</b> {preview['url']}<br>"
+                f"<b>Título detectado:</b> {preview['title']}<br></div>",
+                unsafe_allow_html=True
+            )
+            if preview['img']:
+                st.image(preview['img'], caption="Prévia do site", use_column_width=True)
+            st.markdown(
+                "<div style='color:white;background:#b30000;padding:8px;border-radius:5px;text-align:center;'>"
+                "🚷 <b>NÃO PROSSIGA — ESTE LINK PODE ROUBAR SEUS DADOS OU INDUZIR AO ERRO!</b></div>",
+                unsafe_allow_html=True
+            )
+
     return html_final
 
 # ---------- INTERFACE ----------
