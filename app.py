@@ -149,6 +149,17 @@ def detectar_marketing(texto_lower: str):
 
     return score, motivos
 
+import re
+
+def _is_gambling(texto_lower: str) -> bool:
+    """
+    Detecta 'cassino'/'apostas'/'bet' com segurança.
+    Usa bordas de palavra para evitar falsos positivos como 'Betta'.
+    """
+    padrao = r"\b(cassino|aposta|apostas|bet|bet365|pixbet)\b"
+    return re.search(padrao, texto_lower, flags=re.IGNORECASE) is not None
+
+
 
 # ---------- FUNÇÃO DE ANÁLISE ----------
 def analisar_mensagem(texto):
@@ -160,78 +171,93 @@ def analisar_mensagem(texto):
     score_modelo = resultado["score"]
 
     alerta = []
-    risco = 0
+    # Vamos separar risco em duas camadas:
+    phishing = 0   # sinais fortes de golpe (link encurtado + pedido de ação/senha/dado)
+    risco_suave = 0  # sinais fracos/ambíguos (ter link, palavras soltas etc.)
     links = re.findall(r"https?://\S+", texto)
 
-    # --- Heurísticas de golpe/suspeita ---
-    palavras_suspeitas = ["pix","ganhou","retirada","clique","confirme","prêmio","transferido","saldo"]
-    if any(p in texto_lower for p in palavras_suspeitas):
-        alerta.append("🚨 Termos muito usados em **golpes** detectados.")
-        risco += 2
+    # ---------------- Heurísticas de golpe (refinadas) ----------------
+    # Sinais clássicos de phishing (ação + link)
+    termos_acao = ["clique", "acesse", "confirme", "atualize", "verifique", "baixe", "faça login"]
+    termos_sensiveis = ["senha", "token", "código", "codigo", "sms", "dados", "cartão", "cartao", "cvv"]
 
     if links:
-        alerta.append("🔗 Mensagem contém **link**.")
-        risco += 1  # risco base por ter link
+        risco_suave += 1  # ter link já aumenta leve
         if any(e in texto_lower for e in ["bit.ly","tinyurl","cut.ly","is.gd"]):
-            alerta.append("⚠️ Link **encurtado** (típico em **phishing**).")
-            risco += 3
+            alerta.append("⚠️ Link **encurtado** (frequente em **phishing**).")
+            phishing += 2
+        if any(t in texto_lower for t in termos_acao):
+            alerta.append("🧭 Pede uma **ação imediata** (clicar/confirmar/acessar).")
+            phishing += 2
+        if any(t in texto_lower for t in termos_sensiveis):
+            alerta.append("🔐 Pede/menção a **dados sensíveis** (senha/código/sms).")
+            phishing += 2
 
-    if any(p in texto_lower for p in ["cassino","aposta","bet","jogo"]):
-        alerta.append("🎰 Menciona **cassino/apostas online** (frequente em fraudes).")
-        risco += 3
+    # Palavras suspeitas (mais focadas; removi termos que causavam falso positivo em propaganda)
+    suspeitas = ["pix", "prêmio", "premio"]  # mantemos poucas e realmente fortes
+    if any(p in texto_lower for p in suspeitas):
+        alerta.append("🚨 Termos comumente usados em **golpes**.")
+        risco_suave += 2
 
-    if any(p in texto_lower for p in ["r$","ganhe","receba","transferido","saldo","verificado"]):
-        alerta.append("💸 Promessa de **dinheiro/transferência** (prêmio falso).")
-        risco += 2
+    # Cassino/aposta com regex de borda (não pega 'Betta')
+    if _is_gambling(texto_lower):
+        alerta.append("🎰 Menciona **cassino/apostas** (muitas fraudes usam esse tema).")
+        risco_suave += 2
 
-    # --- Detector de Marketing/Promoção ---
-    score_mkt, motivos_mkt = detectar_marketing(texto_lower)
+    # “Dinheiro fácil”: só sobe risco se vier junto de AÇÃO+LINK (senão é típico de anúncio)
+    promessas = ["ganhe", "receba", "transferido", "saldo", "r$"]
+    if any(p in texto_lower for p in promessas) and (links and any(t in texto_lower for t in termos_acao)):
+        alerta.append("💸 Promessa de **dinheiro** associada a ação + link.")
+        phishing += 2
 
-    # Decisão de categoria
-    # Se há fortes sinais de phishing/golpe (risco>=4), é golpe/suspeita.
-    # Se score_mkt >=3 e risco <4 (sem phishing forte), classifica como Marketing.
-    if risco >= 4:
+    # ---------------- Detector de Marketing/Promo ----------------
+    score_mkt, motivos_mkt = detectar_marketing(texto_lower)  # você já tem essa função
+    # Reforça marketing se há preços/CPF/urgência mas sem phishing forte
+    if score_mkt >= 2 and phishing == 0:
+        alerta.extend(motivos_mkt)
+
+    # ---------------- Decisão de categoria (regra clara) ----------------
+    # 1) Se há sinais fortes de phishing => golpe/suspeita
+    # 2) Se há cara de marketing e phishing fraco/zero => marketing
+    # 3) Caso contrário, usa risco_suave para suspeita/segura
+    if phishing >= 3:
         categoria = "golpe"
         gravidade = "🚨 **ALERTA MÁXIMO: ALTA PROBABILIDADE DE GOLPE!**"
-        header_color = "#e03131"
-        risk_color = "#e03131"
-    elif risco >= 2:
-        categoria = "suspeita"
-        gravidade = "⚠️ **Mensagem suspeita. Tenha cuidado.**"
-        header_color = "#f59f00"
-        risk_color = "#f59f00"
-    elif score_mkt >= 3:
+        header_color = "#e03131"; risk_color = "#e03131"
+        risco_barra = min(phishing + risco_suave, 10)
+    elif score_mkt >= 2 and phishing == 0:
         categoria = "marketing"
         gravidade = "🛍️ **Promoção/Marketing**"
-        header_color = "#2b6ef3"   # azul
-        risk_color = "#2b6ef3"
-        # Acrescenta motivos de marketing como “alertas informativos”
-        alerta.extend(motivos_mkt)
+        header_color = "#2b6ef3"; risk_color = "#2b6ef3"
+        risco_barra = min(phishing + risco_suave, 10)  # geralmente baixo
+    elif phishing > 0 or risco_suave >= 3:
+        categoria = "suspeita"
+        gravidade = "⚠️ **Mensagem suspeita. Tenha cuidado.**"
+        header_color = "#f59f00"; risk_color = "#f59f00"
+        risco_barra = min(phishing + risco_suave, 10)
     else:
         categoria = "segura"
         gravidade = "✅ **Parece segura**"
-        header_color = "#2f9e44"
-        risk_color = "#2f9e44"
+        header_color = "#2f9e44"; risk_color = "#2f9e44"
+        risco_barra = min(phishing + risco_suave, 10)
 
-    # Cabeçalho
+    # ---------------- Renderização ----------------
     header_html = f"<div class='alert-header' style='background:{header_color};'>{gravidade}</div>"
-
-    # Barra de risco: mostra “risco de golpe”, independente da categoria
-    fill = min(risco/10, 1.0)
+    fill = (risco_barra/10)
     risk_html = f"""
     <div class='risk-box'>
-      <div class='risk-label'><span>Nível de risco de golpe</span><span>{risco}/10</span></div>
+      <div class='risk-label'><span>Nível de risco de golpe</span><span>{risco_barra}/10</span></div>
       <div class='risk-bar'><div style='width:{fill*100:.0f}%; background:{risk_color};'></div></div>
     </div>"""
 
-    # Lista de alertas
     itens = ""
-    for a in alerta:
+    for a in alerta + (motivos_mkt if (categoria=="marketing" and motivos_mkt) else []):
         em = a.strip().split(" ")[0]
         resto = a[len(em):].strip() if em and len(em) <= 3 else a
         emoji_html = f"<div class='alert-emoji'>{em}</div>" if len(em) <= 3 else "<div class='alert-emoji'>•</div>"
         texto_html = f"<div class='alert-text'>{resto}</div>"
         itens += f"<li class='alert-item'>{emoji_html}{texto_html}</li>"
+
     lista_html = (
         f"<ul class='alerts'>{itens}</ul>"
         if itens
@@ -240,7 +266,7 @@ def analisar_mensagem(texto):
 
     html_final = header_html + risk_html + lista_html
 
-    # Preview de links (se houver)
+    # Preview de links + dica
     for link in links:
         preview = get_link_preview(link)
         st.markdown("---")
@@ -256,12 +282,12 @@ def analisar_mensagem(texto):
               <b>Título detectado:</b> {preview['title']}
             </div>
             """, unsafe_allow_html=True)
-        if preview["img"]:
+        if preview.get("img"):
             st.image(preview["img"], caption="Prévia do site", use_column_width=True)
 
-        # Dica de “boas práticas” se a categoria for marketing (às vezes é legítimo)
         if categoria == "marketing":
-            st.info("ℹ️ Parece **promoção**. Ainda assim, prefira acessar a loja digitando o site oficial no navegador; evite links encurtados.")
+            st.info("ℹ️ Parece **promoção**. Acesse digitando o site oficial no navegador e evite links encurtados.")
+
     return html_final
 
 
